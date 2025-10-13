@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RoomExpenseSplit — Menu UI</title>
+  <style>
+    /* BASIC/SILLY COLORS */
+    :root{
+      --bg:#f8f9fa; /* Very Light Gray */
+      --card:#ffffff;
+      --text:#343a40; /* Dark Gray */
+      --muted:#6c757d; /* Medium Gray */
+      --primary-soft:#e9f5e9; /* Very Light Green */
+      --primary:#6c9f6c; /* Soft Olive Green */
+      --accent:#8fbc8f; /* Light Olive */
+      --shadow:rgba(0,0,0,0.08);
+      --danger:#dc3545;
+    }
+    *{box-sizing:border-box;font-family:system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif}
+    body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;padding:0;}
+    
+    .wrap{max-width:600px;margin:0 auto;padding:20px 15px;}
+
+    /* HEADER AND MENU */
+    header{
+      background:var(--card);
+      box-shadow:0 2px 4px var(--shadow);
+      padding:15px 15px;
+      display:flex;
+      flex-direction:column;
+      position:sticky;
+      top:0;
+      z-index:100;
+    }
+    h1{font-size:22px;margin:0;color:var(--primary);}
+    
+    .menu{
+      display:flex;
+      justify-content:space-between;
+      margin-top:10px;
+      border-bottom:1px solid #dee2e6;
+    }
+    .menu-item{
+      padding:10px 0;
+      flex:1;
+      text-align:center;
+      cursor:pointer;
+      color:var(--muted);
+      font-weight:600;
+      border-bottom:2px solid transparent;
+      transition:all 0.2s;
+    }
+    .menu-item.active{
+      color:var(--primary);
+      border-bottom:2px solid var(--primary);
+    }
+
+    /* GENERAL UI ELEMENTS */
+    .card{background:var(--card);padding:16px;border-radius:8px;box-shadow:0 2px 8px var(--shadow);margin-bottom:20px;}
+    .section-title{font-size:18px;font-weight:600;margin-bottom:10px;color:var(--text);}
+    
+    /* FORM STYLES */
+    .form{display:flex;flex-direction:column;gap:12px}
+    label{font-size:14px;color:var(--muted);font-weight:500;display:block;margin-bottom:4px}
+    input[type=text], input[type=number], select {
+      width:100%;padding:10px 12px;border-radius:6px;border:1px solid #ced4da;background:var(--bg);color:inherit;
+      font-size:16px;
+    }
+    input[type=file]{padding:8px 0;}
+    .row{display:flex;gap:10px}
+    .row .col{flex:1}
+    button{background:var(--primary);border:0;padding:10px 12px;border-radius:6px;color:white;font-weight:600;cursor:pointer;font-size:16px;transition:opacity 0.1s;}
+    button:hover{opacity:0.9;}
+
+    .btn-ghost{background:transparent;border:1px solid #ced4da;color:var(--muted);font-weight:500;}
+    .btn-ghost:hover{background:#e9ecef;}
+    .btn-danger{background:var(--danger);border:0;}
+    .btn-filter{
+      padding:6px 10px;
+      font-size:14px;
+      background:var(--primary-soft);
+      color:var(--primary);
+    }
+    .btn-filter.active{
+      background:var(--primary);
+      color:white;
+    }
+
+    /* HISTORY/EXPENSES LIST */
+    .expenses{margin-top:10px;display:grid;gap:10px}
+    .expense{display:flex;gap:10px;align-items:center;padding:10px;border-radius:6px;background:var(--primary-soft);border-left:4px solid var(--accent);}
+    .expense img{width:48px;height:48px;border-radius:4px;object-fit:cover;border:1px solid #ced4da;}
+    .expense .meta{flex:1}
+    .expense .meta b{display:block;color:var(--text);font-size:15px}
+    .small{font-size:12px;color:var(--muted)}
+    .expense .controls{display:flex;gap:6px;}
+
+    /* ANALYSIS/GRAPH */
+    .analysis-graph{margin-top:15px;}
+    .bar-container{display:flex;align-items:center;margin-bottom:5px;}
+    .bar-label{width:80px;font-size:12px;color:var(--muted);}
+    .bar{height:20px;border-radius:3px;background:var(--primary);margin-left:10px;transition:width 0.5s;}
+    .bar-value{font-size:12px;margin-left:5px;font-weight:600;}
+
+    /* SUMMARY (in Add Expense tab) */
+    .totals{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .person{display:flex;align-items:center;gap:10px;padding:10px;border-radius:6px;background:var(--primary-soft);}
+    .avatar{width:36px;height:36px;border-radius:999px;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;}
+    .settlement pre{white-space:pre-wrap;font-family:monospace;background:#f1f5f9;padding:10px;border-radius:6px;border:1px solid #e2e8f0;color:var(--text);font-size:14px;}
+    
+    footer{margin-top:30px;color:var(--muted);font-size:12px;text-align:center;padding:10px 0;}
+
+    /* Content Switching */
+    .content-section{display:none;}
+    .content-section.active{display:block;}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>RoomExpenseSplit</h1>
+    <div class="menu">
+      <div class="menu-item active" data-section="add-expense">Add Expense</div>
+      <div class="menu-item" data-section="history">History</div>
+      <div class="menu-item" data-section="analysis">Analysis</div>
+      <div class="menu-item" data-section="settings">Settings</div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    
+    <div id="add-expense" class="content-section active">
+      <div class="card">
+        <div class="section-title">Record Purchase</div>
+        <div class="form">
+          <input type="hidden" id="edit-index" value="-1" />
+          <div>
+            <label>Roommate (Payer)</label>
+            <select id="select-roommate"></select>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <label>Item name</label>
+              <input id="item-name" type="text" placeholder="e.g. Rice, Milk" />
+            </div>
+            <div class="col">
+              <label>Amount (₹)</label>
+              <input id="item-amount" type="number" min="0" step="1" placeholder="100" />
+            </div>
+          </div>
+
+          <div>
+            <label>Image (optional)</label>
+            <input id="item-image" type="file" accept="image/*" />
+            <div class="small" style="margin-top:5px;">*Date will be captured automatically.</div>
+          </div>
+
+          <div class="row">
+            <button id="save-expense">Save New Expense</button>
+            </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="section-title">Live Summary & Balances</div>
+        <div class="totals">
+          <div class="person"><div class="avatar">₹</div><div>
+            <div class="small">Total Spent</div><div id="total-spent" style="font-weight:600;">₹0</div></div></div>
+          <div class="person"><div class="avatar">/</div><div>
+            <div class="small">Per Person</div><div id="per-person" style="font-weight:600;">₹0</div></div></div>
+        </div>
+        <div style="margin-top:15px;">
+          <div class="section-title" style="font-size:16px;">Balances</div>
+          <div class="balances" id="balances"></div>
+        </div>
+        <div style="margin-top:15px;">
+          <div class="section-title" style="font-size:16px;">Settlement Suggestion</div>
+          <div class="settlement"><pre id="settle-output">No expenses yet.</pre></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="history" class="content-section">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="section-title" style="margin-bottom:0;">Expense History</div>
+          <div style="display:flex;gap:5px;">
+            <button class="btn-filter active" data-filter="day">Day</button>
+            <button class="btn-filter" data-filter="week">Week</button>
+            <button class="btn-filter" data-filter="month">Month</button>
+          </div>
+        </div>
+
+        <div class="expenses" id="expenses"></div>
+      </div>
+    </div>
+    
+    <div id="analysis" class="content-section">
+      <div class="card">
+        <div class="section-title">Expense Analysis (Month-wise Trend)</div>
+        <div class="small" style="margin-bottom:10px;">Compares total spending month-over-month.</div>
+        <div class="analysis-graph" id="analysis-graph">No data for analysis yet.</div>
+      </div>
+    </div>
+    
+    <div id="settings" class="content-section">
+      <div class="card">
+        <div class="section-title">Roommate Management</div>
+        <div class="row" style="margin-bottom:15px;">
+          <input id="new-roommate" type="text" placeholder="Add roommate name" />
+          <button id="add-roommate" class="btn-ghost">Add</button>
+        </div>
+        <div id="roommate-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Data Management</div>
+        <div style="display:flex;gap:10px;margin-bottom:10px;">
+          <!-- <button id="export-json" class="btn-ghost">Export JSON</button>
+          <button id="import-json" class="btn-ghost">Import JSON</button> -->
+          <input id="json-file" type="file" accept="application/json" style="display:none" />
+        </div>
+        <hr style="opacity:0.1;border:none;height:1px;background:#e2e8f0;margin:15px 0;" />
+        <button id="reset-expenses" class="btn-ghost" style="width:100%;">Reset All Expenses (Keep Roommates)</button>
+        <button id="clear-all" class="btn-danger" style="width:100%;margin-top:10px;">Clear All Data (Roommates & Expenses)</button>
+      </div>
+    </div>
+
+    <footer>Data stored locally only.</footer>
+  </div>
+
+  <script>
+    /* ---------- STORAGE KEYS & UTIL ---------- */
+    const KEY = 'roomexpense_v3_menu'; 
+    const DEFAULT_ROOMMATES = ['Tejesh', 'Vishal', 'Abhishek', 'Ujwal', 'Bhargav'];
+    let currentHistoryFilter = 'day';
+
+    function todayISO() { return new Date().toISOString().slice(0, 10); }
+    function loadState(){
+      const raw = localStorage.getItem(KEY);
+      if(!raw) return {roommates: DEFAULT_ROOMMATES, expenses: []};
+      try{ return JSON.parse(raw) }catch(e){return {roommates: DEFAULT_ROOMMATES, expenses:[]}}
+    }
+    function saveState(state){ localStorage.setItem(KEY, JSON.stringify(state)); }
+
+    let state = loadState();
+
+    /* ---------- DOM ELEMENTS ---------- */
+    const menuItems = document.querySelectorAll('.menu-item');
+    const contentSections = document.querySelectorAll('.content-section');
+    const selectRoommate = document.getElementById('select-roommate');
+    const expensesEl = document.getElementById('expenses');
+    const totalSpentEl = document.getElementById('total-spent');
+    const perPersonEl = document.getElementById('per-person');
+    const balancesEl = document.getElementById('balances');
+    const settleOut = document.getElementById('settle-output');
+    const itemName = document.getElementById('item-name');
+    const itemAmount = document.getElementById('item-amount');
+    const itemImage = document.getElementById('item-image');
+    const saveExpenseButton = document.getElementById('save-expense');
+    const editIndexInput = document.getElementById('edit-index'); // Kept for consistency, but functionality is removed
+    const newRoommate = document.getElementById('new-roommate');
+    const roommateList = document.getElementById('roommate-list');
+    const filterButtons = document.querySelectorAll('.btn-filter');
+    const analysisGraphEl = document.getElementById('analysis-graph');
+
+    /* ---------- INIT & NAVIGATION ---------- */
+    function init(){
+      if(!state.roommates || state.roommates.length===0) state.roommates = DEFAULT_ROOMMATES;
+      renderRoommateSelect();
+      renderRoommateList();
+      renderExpenses();
+      calculateAndRender();
+      renderAnalysisGraph();
+      resetForm();
+    }
+    
+    function switchSection(sectionId){
+      contentSections.forEach(sec => sec.classList.remove('active'));
+      document.getElementById(sectionId).classList.add('active');
+      menuItems.forEach(item => item.classList.remove('active'));
+      document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+
+      // Re-render components for active view
+      if(sectionId === 'history') renderExpenses(currentHistoryFilter);
+      if(sectionId === 'analysis') renderAnalysisGraph();
+      if(sectionId === 'add-expense') calculateAndRender();
+      if(sectionId === 'settings') renderRoommateList();
+    }
+
+    menuItems.forEach(item => {
+      item.onclick = () => switchSection(item.getAttribute('data-section'));
+    });
+
+    /* ---------- ROOMMATES (SETTINGS) ---------- */
+    function renderRoommateSelect(){
+      selectRoommate.innerHTML = '';
+      state.roommates.forEach(name=>{
+        const opt = document.createElement('option'); opt.value=name; opt.textContent=name; selectRoommate.appendChild(opt);
+      })
+    }
+    function renderRoommateList(){
+      roommateList.innerHTML = '';
+      state.roommates.forEach(name=>{
+        const el = document.createElement('div'); el.style.display='flex'; el.style.justifyContent='space-between'; el.style.alignItems='center';
+        const left = document.createElement('div'); left.textContent = name; left.className='small'; left.style.fontSize='14px';
+        const btns = document.createElement('div');
+        const rem = document.createElement('button'); rem.className='btn-ghost small'; rem.textContent='Remove'; rem.style.padding='4px 8px';
+        rem.onclick = ()=>{ if(confirm('Remove '+name+' and all their expenses?')){ removeRoommate(name) } }
+        btns.appendChild(rem);
+        el.appendChild(left); el.appendChild(btns); roommateList.appendChild(el);
+      })
+    }
+    function addRoommate(name){
+      name = name.trim();
+      if(!name) return alert('Enter a name');
+      if(state.roommates.map(n=>n.toLowerCase()).includes(name.toLowerCase())) return alert('Name exists');
+      state.roommates.push(name);
+      saveState(state);
+      renderRoommateList();
+      renderRoommateSelect();
+      calculateAndRender();
+    }
+    function removeRoommate(name){
+      state.roommates = state.roommates.filter(n=>n!==name);
+      state.expenses = state.expenses.filter(e=>e.payer!==name);
+      saveState(state);
+      renderRoommateSelect();
+      renderRoommateList();
+      renderExpenses();
+      calculateAndRender();
+    }
+
+    document.getElementById('add-roommate').onclick = ()=>{ addRoommate(newRoommate.value.trim()); newRoommate.value=''; }
+
+    /* ---------- EXPENSES / HISTORY ---------- */
+    
+    filterButtons.forEach(btn => {
+      btn.onclick = () => {
+        filterButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentHistoryFilter = btn.getAttribute('data-filter');
+        renderExpenses(currentHistoryFilter);
+      };
+    });
+
+    function isSameDay(d1, d2) { return d1.toDateString() === d2.toDateString(); }
+    function isSameWeek(d1, d2) {
+      const startOfWeek = (d) => { const date = new Date(d); const day = date.getDay(); const diff = date.getDate() - day + (day === 0 ? -6 : 1); date.setDate(diff); date.setHours(0,0,0,0); return date.getTime(); };
+      return startOfWeek(d1) === startOfWeek(d2);
+    }
+    function isSameMonth(d1, d2) { return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth(); }
+
+    function renderExpenses(filter = 'day'){
+      let filteredExpenses = [];
+      const today = new Date();
+
+      if (filter === 'day') {
+        filteredExpenses = state.expenses.filter(e => isSameDay(new Date(e.date), today));
+      } else if (filter === 'week') {
+        filteredExpenses = state.expenses.filter(e => isSameWeek(new Date(e.date), today));
+      } else if (filter === 'month') {
+        filteredExpenses = state.expenses.filter(e => isSameMonth(new Date(e.date), today));
+      } else {
+        filteredExpenses = state.expenses;
+      }
+      
+      if(filteredExpenses.length === 0){
+        expensesEl.innerHTML = `<div class="small" style="text-align:center;padding:20px;background:#fff;border-radius:6px;">No expenses found for the current ${filter}.</div>`;
+        return;
+      }
+      
+      expensesEl.innerHTML='';
+      filteredExpenses.slice().reverse().forEach(exp => {
+        
+        const div = document.createElement('div'); div.className='expense';
+        const img = document.createElement('img'); img.src = exp.image || placeholderFor(exp.item);
+        const meta = document.createElement('div'); meta.className='meta';
+        const title = document.createElement('b'); title.textContent = exp.item + ' — ₹' + Number(exp.amount).toFixed(2);
+        const small = document.createElement('div'); small.className='small'; small.textContent = exp.payer + ' • ' + exp.date;
+        meta.appendChild(title); meta.appendChild(small);
+
+        // Controls are empty now as the 'Edit' button has been removed
+        const controls = document.createElement('div'); controls.className = 'controls';
+        
+        div.appendChild(img); div.appendChild(meta); div.appendChild(controls); expensesEl.appendChild(div);
+      });
+    }
+
+    function resetForm(){
+      itemName.value='';
+      itemAmount.value='';
+      itemImage.value='';
+      editIndexInput.value = -1;
+      saveExpenseButton.textContent = 'Save New Expense';
+      if(state.roommates.length > 0) selectRoommate.value = state.roommates[0];
+    }
+    
+    function placeholderFor(item){
+      const txt = item || 'Item';
+      const initials = txt.split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase();
+      const svg = encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><rect width='100%' height='100%' rx='4' fill='%23f0f7f0'/><text x='50%' y='50%' font-size='44' fill='%236c9f6c' dominant-baseline='middle' text-anchor='middle'>${initials}</text></svg>`);
+      return 'data:image/svg+xml;utf8,'+svg;
+    }
+
+    document.getElementById('save-expense').onclick = async ()=>{
+      const payer = selectRoommate.value;
+      const item = itemName.value.trim();
+      const amount = Number(itemAmount.value);
+      // No editIndex logic is needed anymore, only new expense addition
+
+      if(!payer || !item || !amount || isNaN(amount) || amount<=0) return alert('Please fill payer, item and amount');
+
+      let imageData = null;
+      if(itemImage.files && itemImage.files[0]){
+        imageData = await fileToDataURL(itemImage.files[0]);
+      }
+
+      const newExpense = {
+        payer,
+        item,
+        amount: Number(amount),
+        date: todayISO(), // Automatically capture date
+        image: imageData
+      };
+
+      state.expenses.push(newExpense);
+      
+      saveState(state);
+      resetForm();
+      renderExpenses(currentHistoryFilter);
+      calculateAndRender();
+      renderAnalysisGraph(); // Update graph on new entry
+      alert('Expense saved successfully!');
+    }
+
+    function fileToDataURL(file){ return new Promise((res,rej)=>{ const r = new FileReader(); r.onload = ()=>res(r.result); r.onerror = rej; r.readAsDataURL(file); }) }
+
+    document.getElementById('clear-all').onclick = ()=>{ if(confirm('Clear ALL data (roommates and expenses)?')){ state = {roommates:[], expenses:[]}; saveState(state); init(); } }
+    document.getElementById('reset-expenses').onclick = ()=>{ if(confirm('Remove all expenses? (roommates remain)')){ state.expenses=[]; saveState(state); renderExpenses(); calculateAndRender(); renderAnalysisGraph(); } };
+
+    /* ---------- CALCULATION & SUMMARY ---------- */
+    function calculateAndRender(){
+      const total = state.expenses.reduce((s,e)=>s+Number(e.amount),0);
+      const n = Math.max(1, state.roommates.length);
+      const perPerson = total / n;
+      totalSpentEl.textContent = '₹' + total.toFixed(2);
+      perPersonEl.textContent = '₹' + perPerson.toFixed(2);
+
+      const totals = {};
+      state.roommates.forEach(r=>totals[r]=0);
+      state.expenses.forEach(e=>{ if(!totals[e.payer]) totals[e.payer]=0; totals[e.payer]+=Number(e.amount); });
+
+      balancesEl.innerHTML='';
+      const balanceArr = [];
+      state.roommates.forEach(r=>{
+        const spent = totals[r] || 0; const bal = spent - perPerson; balanceArr.push({name:r, spent, bal});
+        const p = document.createElement('div'); p.className='person';
+        const av = document.createElement('div'); av.className='avatar'; av.textContent = r[0] || '?';
+        const text = document.createElement('div'); 
+        const nm = document.createElement('div'); nm.textContent = r; nm.style.fontWeight='600';
+        const sm = document.createElement('div'); sm.className='small'; sm.textContent = `Spent: ₹${spent.toFixed(2)} • Bal: ₹${bal.toFixed(2)}`;
+        text.appendChild(nm); text.appendChild(sm);
+        p.appendChild(av); p.appendChild(text); balancesEl.appendChild(p);
+      });
+
+      // Settlement
+      const creditors = balanceArr.filter(x=>x.bal>0).map(x=>({...x})).sort((a,b)=>b.bal-a.bal);
+      const debtors = balanceArr.filter(x=>x.bal<0).map(x=>({...x})).sort((a,b)=>a.bal-b.bal);
+      const instructions = [];
+      let i=0,j=0;
+      while(i<debtors.length && j<creditors.length){
+        const debtor = debtors[i]; const creditor = creditors[j];
+        const owe = Math.min(Math.abs(debtor.bal), creditor.bal);
+        if(owe > 0.01){ 
+          instructions.push(`${debtor.name} pays ₹${owe.toFixed(2)} → ${creditor.name}`);
+          debtor.bal += owe; creditor.bal -= owe;
+        }
+        if(Math.abs(debtor.bal) < 0.01) i++;
+        if(creditor.bal < 0.01) j++;
+      }
+      if(instructions.length===0) settleOut.textContent = 'All settled or no expenses.'; else settleOut.textContent = instructions.join('\n');
+    }
+
+    /* ---------- ANALYSIS (GRAPH) ---------- */
+
+    function getMonthYear(dateString) {
+      const d = new Date(dateString);
+      return `${d.toLocaleString('en-US', { month: 'short' })} ${d.getFullYear()}`;
+    }
+
+    function renderAnalysisGraph() {
+      if (state.expenses.length === 0) {
+        analysisGraphEl.textContent = 'No expenses recorded yet to generate analysis.';
+        return;
+      }
+
+      // 1. Group expenses by Month-Year
+      const monthlyTotals = state.expenses.reduce((acc, expense) => {
+        const monthYear = getMonthYear(expense.date);
+        acc[monthYear] = (acc[monthYear] || 0) + Number(expense.amount);
+        return acc;
+      }, {});
+
+      const monthlyData = Object.entries(monthlyTotals).map(([monthYear, total]) => ({ monthYear, total }));
+      
+      // Sort by date (oldest first for trend)
+      monthlyData.sort((a, b) => new Date(a.monthYear.replace(' ', ' 1, ')) - new Date(b.monthYear.replace(' ', ' 1, ')));
+      
+      // Only show the last 6 months for a clear trend
+      const recentData = monthlyData.slice(-6);
+
+      // 2. Find the highest expense month for scaling the bar chart
+      const maxTotal = Math.max(...recentData.map(d => d.total));
+      
+      analysisGraphEl.innerHTML = '';
+
+      if (recentData.length < 2) {
+          analysisGraphEl.innerHTML = `<div class="small">Record expenses over more than one month to see a trend analysis.</div>`;
+          // Still show the only month's data
+          recentData.forEach(data => {
+            const barContainer = document.createElement('div');
+            barContainer.className = 'bar-container';
+            barContainer.innerHTML = `
+              <div class="bar-label">${data.monthYear}:</div>
+              <div class="bar" style="width:${(data.total / maxTotal) * 80 + 20}%; background-color: var(--accent);"></div>
+              <div class="bar-value">₹${data.total.toFixed(0)}</div>
+            `;
+            analysisGraphEl.appendChild(barContainer);
+          });
+          return;
+      }
+      
+      // 3. Render the bars
+      recentData.forEach((data, index) => {
+        const percentage = (data.total / maxTotal) * 100;
+        const width = Math.max(20, (data.total / maxTotal) * 80); // Ensure a minimum width for visibility
+
+        const barContainer = document.createElement('div');
+        barContainer.className = 'bar-container';
+        
+        let color = 'var(--primary)';
+        let trend = '';
+
+        if (index > 0) {
+            const prevTotal = recentData[index - 1].total;
+            if (data.total > prevTotal) {
+                color = 'var(--danger)'; // Red for increase
+                trend = ' (↑)';
+            } else if (data.total < prevTotal) {
+                color = 'var(--accent)'; // Olive for decrease
+                trend = ' (↓)';
+            }
+        }
+
+        barContainer.innerHTML = `
+          <div class="bar-label">${data.monthYear}:</div>
+          <div class="bar" style="width:${width}%; background-color: ${color};"></div>
+          <div class="bar-value">₹${data.total.toFixed(0)}${trend}</div>
+        `;
+        analysisGraphEl.appendChild(barContainer);
+      });
+      
+      analysisGraphEl.insertAdjacentHTML('beforeend', '<div class="small" style="margin-top:10px;">↑: Higher than previous month, ↓: Lower than previous month.</div>');
+    }
+
+    /* ---------- EXPORT / IMPORT (SETTINGS) ---------- */
+    document.getElementById('export-json').onclick = ()=>{
+      const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='roomexpense_menu_ui.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    }
+    document.getElementById('import-json').onclick = ()=>{ document.getElementById('json-file').click(); }
+    document.getElementById('json-file').onchange = (ev)=>{
+      const f = ev.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ()=>{ try{ const parsed = JSON.parse(r.result); if(parsed.roommates && parsed.expenses){ state = parsed; saveState(state); init(); alert('Imported OK'); } else alert('Invalid file format. Requires "roommates" and "expenses" fields.'); }catch(e){alert('Invalid JSON file.')} }; r.readAsText(f);
+    }
+
+    /* ---------- START ---------- */
+    init();
+  </script>
+</body>
+</html>
