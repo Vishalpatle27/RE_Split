@@ -1,798 +1,1435 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>RoomExpense Pro — Final</title>
-<style>
-  :root{
-    --bg:#f6f8f8; --card:#ffffff; --text:#1f2d2b; --muted:#6b7773;
-    --primary:#147a43; --accent:#89c08a; --danger:#d63f3f; --shadow:rgba(13,40,26,0.06);
-  }
-  *{box-sizing:border-box;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;}
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--text)}
-  .app{max-width:1100px;margin:0 auto;padding:12px}
-  header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border-radius:10px;background:var(--card);box-shadow:0 6px 18px var(--shadow);position:sticky;top:10px;z-index:30}
-  .title{display:flex;align-items:center;gap:10px}
-  h1{margin:0;font-size:20px;color:var(--primary)}
-  .small{font-size:13px;color:var(--muted)}
-  .nav-actions{display:flex;align-items:center;gap:8px}
-  .icon-btn{width:40px;height:40px;border-radius:10px;background:transparent;border:1px solid #e6efe6;display:flex;align-items:center;justify-content:center;cursor:pointer}
-  .icon-btn.active{box-shadow:0 0 0 4px rgba(20,122,67,0.12);border-color:var(--primary);background:linear-gradient(90deg, rgba(20,122,67,0.06), transparent)}
-  .menu{display:flex;gap:8px;margin-top:12px}
-  .menu-item{padding:8px 12px;border-radius:8px;background:transparent;color:var(--muted);border:1px solid transparent;cursor:pointer;font-weight:600}
-  .menu-item.active{background:var(--primary);color:#fff}
-  .card{background:var(--card);padding:14px;border-radius:10px;margin-top:12px;box-shadow:0 2px 10px var(--shadow)}
-  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-  input[type=text], input[type=number], select{width:100%;padding:10px;border-radius:8px;border:1px solid #dfeee0}
-  .row{display:flex;gap:12px}
-  .row .col{flex:1}
-  button{background:var(--primary);color:#fff;border:0;padding:10px 12px;border-radius:8px;cursor:pointer}
-  .btn-ghost{background:transparent;border:1px solid #dfeee0;color:var(--muted);padding:8px 10px;border-radius:8px}
-  .btn-danger{background:var(--danger)}
-  .expenses{display:grid;gap:10px;margin-top:8px}
-  .expense{display:flex;gap:10px;align-items:center;padding:10px;border-radius:8px;background:#fff;border:1px solid #eef6ee}
-  .avatar{width:44px;height:44px;border-radius:999px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px}
-  pre{white-space:pre-wrap;background:#f7faf7;padding:10px;border-radius:8px;border:1px solid #e8f4e8}
-  .subtabs{display:flex;gap:6px}
-  .subtab{padding:6px 10px;border-radius:8px;background:#f2f5f2;border:1px solid #e8efe8;cursor:pointer}
-  .subtab.active{background:var(--primary);color:#fff}
-  .filters{display:flex;gap:6px}
-  .filters button{padding:6px 8px;font-size:13px;border-radius:8px}
-  .graph-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-  .bar{height:18px;border-radius:6px;background:var(--primary);transition:width .4s}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>RoomExpense Pro</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 
-  /* hamburger for mobile */
-  .hamburger{display:none;width:42px;height:42px;border-radius:8px;border:1px solid #e6efe6;background:transparent;align-items:center;justify-content:center;cursor:pointer}
-  @media(max-width:800px){
-    .menu{display:none;flex-direction:column}
-    .hamburger{display:flex}
-    .row{flex-direction:column}
-  }
+  <style>
+    :root {
+      --primary: #0f766e;
+      --primary-light: #14b8a6;
+      --primary-dark: #0d5c54;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius-sm: 8px;
+      --radius: 12px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 12px 32px rgba(0,0,0,0.12);
+      --shadow-xl: 0 20px 48px rgba(0,0,0,0.15);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-  /* modal */
-  .modal-back{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.35);display:none;align-items:center;justify-content:center;z-index:80}
-  .modal{background:#fff;padding:16px;border-radius:10px;max-width:420px;width:94%}
-  .modal h3{margin:0 0 8px 0}
-</style>
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --shadow: 0 4px 12px rgba(0,0,0,0.4);
+      --shadow-lg: 0 12px 32px rgba(0,0,0,0.5);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: var(--transition);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      padding-bottom: 80px;
+    }
+
+    .app { max-width: 600px; margin: 0 auto; }
+
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideInRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+    
+    .fade-in { animation: fadeInUp 0.5s ease both; }
+    .slide-in { animation: slideInRight 0.4s ease both; }
+    .scale-in { animation: scaleIn 0.3s ease both; }
+
+    /* Header */
+    header.app-header {
+      position: sticky;
+      top: 0;
+      z-index: 1200;
+      background: linear-gradient(135deg, var(--surface) 0%, rgba(255,255,255,0.5) 100%);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex: 1;
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      font-weight: 800;
+      font-size: 18px;
+      box-shadow: 0 8px 20px rgba(15, 118, 110, 0.25);
+      animation: bounce 2.5s infinite;
+    }
+
+    .brand-text h1 { margin: 0; font-size: 16px; font-weight: 700; }
+    .brand-text p { margin: 0; font-size: 12px; color: var(--text-muted); }
+
+    .header-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 18px;
+    }
+
+    .btn-icon:hover {
+      background: var(--border);
+      transform: scale(1.08);
+    }
+
+    .btn-icon.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Navigation */
+    .nav-menu {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      gap: 4px;
+      padding: 8px 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0) 0%, var(--surface) 20%);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border);
+      z-index: 1100;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .nav-item {
+      flex: 1;
+      padding: 8px 6px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      transition: var(--transition);
+      border: 1px solid transparent;
+    }
+
+    .nav-item:hover { transform: translateY(-2px); }
+    .nav-item.active {
+      color: var(--primary);
+      background: rgba(15, 118, 110, 0.1);
+      border-color: var(--primary);
+    }
+
+    .nav-item i { font-size: 20px; }
+
+    /* Container */
+    .container-main {
+      padding: 16px;
+      animation: fadeInUp 0.6s ease;
+    }
+
+    /* Card */
+    .card-main {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      animation: fadeInUp 0.5s ease;
+      transition: var(--transition);
+    }
+
+    .card-main:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .card-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Buttons */
+    .btn {
+      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(15, 118, 110, 0.35);
+    }
+
+    .btn-secondary {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: var(--text-muted);
+      color: white;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-sm { padding: 6px 12px; font-size: 13px; }
+    .btn-lg { padding: 14px 24px; font-size: 16px; }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      transition: var(--transition);
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .form-row.two-col {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    @media (max-width: 480px) {
+      .form-row.two-col { grid-template-columns: 1fr; }
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    @media (min-width: 480px) {
+      .stats-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, var(--surface) 0%, rgba(255,255,255,0.5) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      text-align: center;
+      animation: fadeInUp 0.5s ease;
+      transition: var(--transition);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    /* Balance Item */
+    .balance-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--surface) 0%, rgba(255,255,255,0.3) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+      animation: slideInRight 0.4s ease;
+      transition: var(--transition);
+    }
+
+    .balance-item:hover {
+      transform: translateX(4px);
+      box-shadow: var(--shadow);
+    }
+
+    .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);
+    }
+
+    .balance-info {
+      flex: 1;
+    }
+
+    .balance-name {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .balance-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .balance-amount {
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 14px;
+      white-space: nowrap;
+      animation: scaleIn 0.3s ease;
+    }
+
+    .balance-positive {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+    }
+
+    .balance-negative {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+    }
+
+    .balance-neutral {
+      background: rgba(107, 114, 128, 0.15);
+      color: var(--text-muted);
+    }
+
+    /* Expense Item */
+    .expense-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+      animation: fadeInUp 0.4s ease;
+      transition: var(--transition);
+    }
+
+    .expense-item:hover {
+      box-shadow: var(--shadow);
+      transform: translateX(2px);
+    }
+
+    .expense-category {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .expense-info {
+      flex: 1;
+    }
+
+    .expense-description {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .expense-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .expense-amount {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--primary);
+    }
+
+    /* Category Badge */
+    .category-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-grocery { background: rgba(34, 197, 94, 0.1); color: #16a34a; }
+    .badge-rent { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
+    .badge-utilities { background: rgba(245, 158, 11, 0.1); color: #d97706; }
+    .badge-transport { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+    .badge-entertainment { background: rgba(168, 85, 247, 0.1); color: #9333ea; }
+    .badge-other { background: rgba(107, 114, 128, 0.1); color: #6b7280; }
+
+    /* FAB */
+    .fab {
+      position: fixed;
+      bottom: 90px;
+      right: 16px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: var(--shadow-xl);
+      animation: scaleIn 0.3s ease;
+      transition: var(--transition);
+      z-index: 1000;
+    }
+
+    .fab:hover {
+      transform: scale(1.12);
+      box-shadow: 0 20px 48px rgba(15, 118, 110, 0.4);
+    }
+
+    .fab:active {
+      transform: scale(0.95);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      animation: fadeInUp 0.3s ease;
+      padding: 16px;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-dialog {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: var(--shadow-xl);
+      animation: scaleIn 0.3s ease;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 24px;
+      transition: var(--transition);
+    }
+
+    .modal-close:hover {
+      color: var(--text);
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 5000;
+      max-width: 90%;
+    }
+
+    .toast {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: slideInRight 0.3s ease;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .toast.success {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+      border-color: rgba(16, 185, 129, 0.3);
+      color: var(--success);
+    }
+
+    .toast.error {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+      border-color: rgba(239, 68, 68, 0.3);
+      color: var(--danger);
+    }
+
+    .toast i { font-size: 18px; }
+
+    /* Section */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* Utility Classes */
+    .text-center { text-align: center; }
+    .text-muted { color: var(--text-muted); }
+    .mt-16 { margin-top: 16px; }
+    .mb-16 { margin-bottom: 16px; }
+    .hidden { display: none !important; }
+
+    /* Media Queries */
+    @media (max-width: 480px) {
+      .container-main { padding: 12px; }
+      .card-main { padding: 16px; margin-bottom: 12px; }
+      body { padding-bottom: 76px; }
+    }
+  </style>
 </head>
-<body>
+<body data-theme="light">
   <div class="app">
-    <header>
-      <div class="title">
-        <h1>RoomExpense Pro</h1>
-      </div>
-
-      <div style="display:flex;gap:8px;align-items:center">
-        <button class="hamburger" id="hamburger" title="Menu">
-          <svg width="20" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="#4b6b5a" stroke-width="1.4" stroke-linecap="round"/></svg>
-        </button>
-
-        <div class="nav-actions">
-          <div id="profile-icon" class="icon-btn" title="Login as roommate">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zM3 21a9 9 0 0118 0" stroke="#4b6b5a" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <div id="admin-icon" class="icon-btn" title="Admin">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2l3 6 6 .5-4.5 3.5L18 20l-6-4-6 4 .5-8.5L2 8.5 8 8 12 2z" stroke="#4b6b5a" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo">RE</div>
+        <div class="brand-text">
+          <h1>RoomExpense</h1>
+          <p class="card-subtitle">Split expenses, track balances</p>
         </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-icon" id="btn-theme" title="Toggle theme">
+          <i class="bi bi-moon"></i>
+        </button>
+        <button class="btn-icon" id="btn-user" title="Login">
+          <i class="bi bi-person"></i>
+        </button>
       </div>
     </header>
 
-    <div class="menu" id="main-menu">
-      <div class="menu-item active" data-section="add">Add Expense</div>
-      <div class="menu-item" data-section="summary">Live Summary</div>
-      <div class="menu-item" data-section="history">History</div>
-      <div class="menu-item" data-section="analysis">Analysis</div>
-      <div class="menu-item" data-section="settings">Settings</div>
-    </div>
+    <!-- Main Container -->
+    <div class="container-main">
+      
+      <!-- HOME SECTION -->
+      <section id="home" class="section active">
+        <div class="card-main">
+          <div class="card-header">
+            <div>
+              <div class="card-title"><i class="bi bi-speedometer2"></i> Dashboard</div>
+              <div class="card-subtitle">Current cycle statistics</div>
+            </div>
+            <button class="btn btn-sm btn-secondary" id="btn-refresh">
+              <i class="bi bi-arrow-repeat"></i> Refresh
+            </button>
+          </div>
 
-    <!-- ADD -->
-    <div id="section-add" class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div style="font-weight:700">Record Purchase</div>
-        <div class="small">Date captured automatically</div>
-      </div>
-
-      <div style="margin-top:10px">
-        <div class="row">
-          <div class="col">
-            <label>Payer (who paid)</label>
-            <select id="payer-select"></select>
-          </div>
-          <div class="col">
-            <label>Split between (tick who share)</label>
-            <div id="split-list" style="display:flex;flex-wrap:wrap;gap:8px"></div>
-            <div class="small" style="margin-top:6px">Only selected people will share the cost.</div>
-          </div>
-        </div>
-
-        <div class="row" style="margin-top:10px">
-          <div class="col">
-            <label>Item name</label>
-            <input id="item-name" type="text" placeholder="e.g. Rice, Milk">
-          </div>
-          <div class="col">
-            <label>Category</label>
-            <select id="item-category">
-              <option>Grocery</option>
-              <option>Dmart</option>
-              <option>Rent</option>
-              <option>Electricity</option>
-              <option>Bills</option>
-              <option>Other</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="row" style="margin-top:10px;align-items:end">
-          <div class="col">
-            <label>Amount (₹)</label>
-            <input id="item-amount" type="number" min="0" step="1" placeholder="100">
-          </div>
-          <div style="width:220px">
-            <label>&nbsp;</label>
-            <div style="display:flex;gap:8px">
-              <button id="save-expense">Save</button>
-              <button id="save-view" class="btn-ghost">Save & View</button>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label"><i class="bi bi-wallet2"></i> Total Spent</div>
+              <div class="stat-value" id="stat-total">₹0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label"><i class="bi bi-person-check"></i> Per Person</div>
+              <div class="stat-value" id="stat-perp">₹0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label"><i class="bi bi-arrow-up"></i> To Pay</div>
+              <div class="stat-value" style="color: var(--danger);" id="stat-pay">₹0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label"><i class="bi bi-arrow-down"></i> To Receive</div>
+              <div class="stat-value" style="color: var(--success);" id="stat-recv">₹0</div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- SUMMARY -->
-    <div id="section-summary" class="card" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div style="font-weight:700">Live Summary & Balances</div>
-        <div class="small">Cycle uses expenses after last settlement</div>
-      </div>
-
-      <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div style="padding:12px;background:#fff;border-radius:8px;border:1px solid #eef6ee">
-          <div class="small">Total Spent (cycle)</div>
-          <div id="total-spent" style="font-weight:700;margin-top:6px">₹0</div>
+        <div class="card-main">
+          <div class="card-title"><i class="bi bi-people"></i> Balances</div>
+          <div class="card-subtitle">Who owes whom</div>
+          <div id="balances-list" style="margin-top: 12px;"></div>
         </div>
-        <div style="padding:12px;background:#fff;border-radius:8px;border:1px solid #eef6ee">
-          <div class="small">Per Person (cycle)</div>
-          <div id="per-person" style="font-weight:700;margin-top:6px">₹0</div>
-        </div>
-      </div>
 
-      <div style="margin-top:12px">
-        <div style="font-weight:700">Balances</div>
-        <div id="balances" style="margin-top:8px"></div>
-      </div>
-
-      <div style="margin-top:12px">
-        <div style="font-weight:700">Settlement Suggestion</div>
-        <pre id="settlement-suggestion">No expenses yet.</pre>
-        <div style="margin-top:8px;display:flex;gap:8px">
-          <button id="mark-settled">Mark All Settled</button>
-          <button id="preview-settlement" class="btn-ghost">Preview</button>
+        <div class="card-main">
+          <div class="card-title"><i class="bi bi-receipt"></i> Latest Expenses</div>
+          <div class="card-subtitle">Most recent transactions</div>
+          <div id="recent-list" style="margin-top: 12px;"></div>
         </div>
-      </div>
-    </div>
+      </section>
 
-    <!-- HISTORY -->
-    <div id="section-history" class="card" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div style="font-weight:700">History</div>
-          <div class="small">Expenses • Settlements • Deleted</div>
+      <!-- ADD EXPENSE SECTION -->
+      <section id="add" class="section">
+        <div class="card-main">
+          <div class="card-title"><i class="bi bi-plus-circle"></i> Add Expense</div>
+          <div class="card-subtitle">Track a new expense</div>
+
+          <form id="form-add" style="margin-top: 16px;">
+            <div class="form-row two-col">
+              <div class="form-group">
+                <label class="form-label">Payer</label>
+                <select id="inp-payer" class="form-select" required></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Amount (₹)</label>
+                <input id="inp-amount" type="number" min="0" step="0.01" class="form-input" placeholder="0.00" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Description</label>
+              <input id="inp-desc" type="text" class="form-input" placeholder="e.g., Groceries" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select id="inp-category" class="form-select">
+                <option value="Grocery">🛒 Grocery</option>
+                <option value="Rent">🏠 Rent</option>
+                <option value="Utilities">⚡ Utilities</option>
+                <option value="Transport">🚗 Transport</option>
+                <option value="Entertainment">🎬 Entertainment</option>
+                <option value="Other">📦 Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Split Between</label>
+              <div id="split-checkboxes" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;"></div>
+            </div>
+
+            <div class="form-row two-col">
+              <div class="form-group">
+                <label class="form-label">Date</label>
+                <input id="inp-date" type="date" class="form-input" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Receipt (optional)</label>
+                <input id="inp-receipt" type="file" accept="image/*" class="form-input" />
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 20px;">
+              <button type="submit" class="btn btn-primary btn-lg" style="flex: 1;">
+                <i class="bi bi-check2"></i> Save
+              </button>
+              <button type="button" id="btn-cancel-add" class="btn btn-secondary btn-lg" style="flex: 1;">
+                <i class="bi bi-x-lg"></i> Cancel
+              </button>
+            </div>
+          </form>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <div class="subtabs" id="history-subtabs">
-            <div class="subtab active" data-tab="expenses">Expenses</div>
-            <div class="subtab" data-tab="settlements">Settlements</div>
-            <div class="subtab" data-tab="deleted">Deleted</div>
+      </section>
+
+      <!-- HISTORY SECTION -->
+      <section id="history" class="section">
+        <div class="card-main">
+          <div class="card-title"><i class="bi bi-clock-history"></i> Expense History</div>
+          <div class="card-subtitle">All transactions</div>
+
+          <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
+            <input id="search-expense" type="text" class="form-input" placeholder="Search..." style="flex: 1; min-width: 120px;" />
+            <select id="filter-category" class="form-select" style="flex: 1; min-width: 120px;">
+              <option value="">All Categories</option>
+              <option value="Grocery">Grocery</option>
+              <option value="Rent">Rent</option>
+              <option value="Utilities">Utilities</option>
+              <option value="Transport">Transport</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
-          <div class="filters">
-            <button class="btn-ghost active" data-filter="day">Day</button>
-            <button class="btn-ghost" data-filter="week">Week</button>
-            <button class="btn-ghost" data-filter="month">Month</button>
+
+          <div style="display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap;">
+            <button class="filter-btn active" data-sort="recent">🕐 Recent</button>
+            <button class="filter-btn" data-sort="oldest">📅 Oldest</button>
+            <button class="filter-btn" data-sort="highest">⬆️ Highest</button>
+            <button class="filter-btn" data-sort="lowest">⬇️ Lowest</button>
+          </div>
+
+          <style>
+            .filter-btn {
+              padding: 6px 12px;
+              border: 1px solid var(--border);
+              border-radius: var(--radius-sm);
+              background: transparent;
+              color: var(--text);
+              cursor: pointer;
+              font-size: 12px;
+              font-weight: 600;
+              transition: var(--transition);
+            }
+            .filter-btn:hover { background: var(--border); }
+            .filter-btn.active {
+              background: var(--primary);
+              color: white;
+              border-color: var(--primary);
+            }
+          </style>
+
+          <div id="history-list" style="margin-top: 16px;"></div>
+        </div>
+      </section>
+
+      <!-- SETTLEMENTS SECTION -->
+      <section id="settlements" class="section">
+        <div class="card-main">
+          <div class="card-title"><i class="bi bi-calculator"></i> Settlements</div>
+          <div class="card-subtitle">Calculate who pays whom</div>
+          <div id="settlements-list" style="margin-top: 12px;"></div>
+          <button id="btn-settle" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 16px;">
+            <i class="bi bi-check-circle"></i> Confirm Settlement
+          </button>
+        </div>
+      </section>
+
+      <!-- ANALYTICS SECTION -->
+      <section id="analytics" class="section">
+        <div class="card-main">
+          <div class="card-title"><i class="bi bi-graph-up"></i> Analytics</div>
+          <div class="card-subtitle">Detailed statistics</div>
+          <div id="analytics-content" style="margin-top: 16px;"></div>
+        </div>
+      </section>
+
+      <!-- SETTINGS SECTION -->
+      <section id="settings" class="section">
+        <div class="card-main">
+          <div class="card-title"><i class="bi bi-gear"></i> Settings</div>
+          <div class="card-subtitle">Manage preferences</div>
+
+          <div style="margin-top: 16px;">
+            <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">Roommates</h3>
+            <div id="roommates-list"></div>
+            <div style="display: flex; gap: 8px; margin-top: 12px;">
+              <input id="inp-new-room" type="text" class="form-input" placeholder="New roommate" />
+              <button id="btn-add-room" class="btn btn-primary">Add</button>
+            </div>
+          </div>
+
+          <div style="margin-top: 20px;">
+            <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">Admin</h3>
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+              <input id="inp-admin-pass" type="password" class="form-input" placeholder="Admin password" />
+              <button id="btn-admin-login" class="btn btn-secondary">Login</button>
+            </div>
+            <button id="btn-export" class="btn btn-secondary" style="margin-right: 8px;">
+              <i class="bi bi-download"></i> Export
+            </button>
+            <button id="btn-clear-all" class="btn btn-danger">
+              <i class="bi bi-trash"></i> Clear All
+            </button>
           </div>
         </div>
-      </div>
-
-      <div id="history-list" style="margin-top:12px"></div>
+      </section>
     </div>
 
-    <!-- ANALYSIS -->
-    <div id="section-analysis" class="card" style="display:none">
-      <div style="font-weight:700">Analysis — Month-wise totals</div>
-      <div class="small" style="margin-top:6px">All expenses included (settlements do not remove data)</div>
-      <div id="analysis-graph" style="margin-top:12px"></div>
-      <div style="margin-top:12px">
-        <div style="font-weight:700">Settlement History</div>
-        <div id="analysis-settlements" class="small" style="margin-top:6px">No settlements yet.</div>
-      </div>
-    </div>
+    <!-- Floating Action Button -->
+    <button class="fab" id="fab" title="Add expense"><i class="bi bi-plus-lg"></i></button>
 
-    <!-- SETTINGS -->
-    <div id="section-settings" class="card" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div style="font-weight:700">Settings</div>
-        <div class="small">Admin-only actions appear when admin is logged in</div>
-      </div>
-
-      <div style="margin-top:10px">
-        <div style="font-weight:700">Roommate Login</div>
-        <div class="small" style="margin-top:6px">Click profile icon to login as Tejesh, Vishal, Abhishek, Ujwal, Bhargav (password name@123)</div>
-      </div>
-
-      <div style="margin-top:12px" class="card">
-        <div style="font-weight:700">Admin Controls</div>
-        <div class="small" style="margin-top:6px">Admin ID: <b>admin</b> | Password: <b>admin@123</b></div>
-        <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
-          <input id="admin-id" type="text" placeholder="admin">
-          <input id="admin-pass" type="password" placeholder="admin@123">
-          <button id="admin-login" class="btn-ghost">Admin Login</button>
-          <button id="admin-logout" class="btn-ghost" style="display:none">Logout</button>
+    <!-- Modals -->
+    <div class="modal-overlay" id="modal-login">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <div class="modal-title"><i class="bi bi-person-fill"></i> Roommate Login</div>
+          <button class="modal-close" id="modal-close">&times;</button>
         </div>
-        <div style="margin-top:8px" class="small">Admin status: <span id="admin-status">Not logged in</span></div>
-      </div>
-
-      <div style="margin-top:12px" class="card">
-        <div style="font-weight:700">Data / Admin Utilities</div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button id="export-json" class="btn-ghost">Export JSON</button>
-          <button id="import-json" class="btn-ghost">Import JSON</button>
-          <input id="json-file" type="file" accept="application/json" style="display:none">
-        </div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button id="reset-expenses" class="btn-ghost">Reset Expenses</button>
-          <button id="clear-all" class="btn-danger">Clear All Data</button>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <input id="modal-name" type="text" class="form-input" placeholder="Name" />
+          <input id="modal-pass" type="password" class="form-input" placeholder="Password" />
+          <button id="modal-login-btn" class="btn btn-primary btn-lg" style="width: 100%;">
+            <i class="bi bi-check-lg"></i> Login
+          </button>
         </div>
       </div>
     </div>
 
-    <div style="height:20px"></div>
-    <div class="small" style="text-align:center;color:var(--muted)">Data stored locally in your browser (localStorage). Later we can add Firebase sync.</div>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
   </div>
 
-  <!-- Roommate login modal -->
-  <div id="modal-room" class="modal-back" aria-hidden>
-    <div class="modal">
-      <h3>Roommate Login</h3>
-      <div class="small">Enter your name (Tejesh, Vishal, Abhishek, Ujwal, Bhargav) and password (name@123)</div>
-      <div style="margin-top:10px">
-        <label>Name</label>
-        <input id="room-name" type="text" placeholder="Tejesh">
-        <label style="margin-top:8px">Password</label>
-        <input id="room-pass" type="password" placeholder="Tejesh@123">
-        <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
-          <button id="room-login" class="btn-ghost">Login</button>
-          <button id="room-close" class="btn-ghost">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Admin modal (used on smaller screens) -->
-  <div id="modal-admin" class="modal-back" aria-hidden>
-    <div class="modal">
-      <h3>Admin Login</h3>
-      <div class="small">Admin ID: admin | Password: admin@123</div>
-      <div style="margin-top:10px">
-        <label>Admin ID</label>
-        <input id="modal-admin-id" type="text" placeholder="admin">
-        <label style="margin-top:8px">Password</label>
-        <input id="modal-admin-pass" type="password" placeholder="admin@123">
-        <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
-          <button id="modal-admin-login" class="btn-ghost">Login</button>
-          <button id="modal-admin-close" class="btn-ghost">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <script>
+    (function() {
+      'use strict';
 
-<script>
-(function(){
-  'use strict';
+      // State Management
+      const KEY = 'roomexpense_pro_v3';
+      const DEFAULT_ROOMMATES = ['Tejesh', 'Vishal', 'Abhishek', 'Ujwal', 'Bhargav'];
 
-  const KEY = 'roomexpense_final_v3';
-  const DEFAULT_ROOMMATES = ['Tejesh','Vishal','Abhishek','Ujwal','Bhargav'];
+      function getState() {
+        const raw = localStorage.getItem(KEY);
+        if (!raw) return initState();
+        try {
+          const s = JSON.parse(raw);
+          return { ...s, expenses: s.expenses || [], settlements: s.settlements || [], roommates: s.roommates || DEFAULT_ROOMMATES };
+        } catch {
+          return initState();
+        }
+      }
 
-  function todayISO(){ return new Date().toISOString().slice(0,10); }
-  function uid(pref){ return pref + '_' + Date.now() + '_' + Math.floor(Math.random()*1000); }
+      function initState() {
+        return {
+          roommates: DEFAULT_ROOMMATES,
+          expenses: [],
+          settlements: [],
+          currentUser: null,
+          theme: 'light',
+          sortBy: 'recent',
+          adminLogged: false
+        };
+      }
 
-  // load/save
-  function loadState(){
-    try{
-      const raw = localStorage.getItem(KEY);
-      if(!raw) return {roommates: DEFAULT_ROOMMATES.slice(), expenses: [], settlements: [], deleted: [], currentUser: null, adminLogged: false};
-      const s = JSON.parse(raw);
-      s.roommates = s.roommates || DEFAULT_ROOMMATES.slice();
-      s.expenses = s.expenses || [];
-      s.settlements = s.settlements || [];
-      s.deleted = s.deleted || [];
-      s.currentUser = s.currentUser || null;
-      s.adminLogged = !!s.adminLogged;
-      return s;
-    } catch(e){ console.error(e); return {roommates: DEFAULT_ROOMMATES.slice(), expenses: [], settlements: [], deleted: [], currentUser: null, adminLogged: false}; }
-  }
-  function saveState(s){ localStorage.setItem(KEY, JSON.stringify(s)); }
+      function setState(s) {
+        localStorage.setItem(KEY, JSON.stringify(s));
+      }
 
-  // flash
-  function flash(msg, t=1400){
-    let el = document.getElementById('__flash');
-    if(!el){ el = document.createElement('div'); el.id='__flash'; el.style.position='fixed'; el.style.right='16px'; el.style.bottom='16px'; el.style.zIndex=200; el.style.background='rgba(0,0,0,0.75)'; el.style.color='#fff'; el.style.padding='8px 12px'; el.style.borderRadius='8px'; document.body.appendChild(el); }
-    el.textContent = msg; el.style.opacity = '1';
-    setTimeout(()=> el.style.opacity = '0', t);
-  }
+      let state = getState();
 
-  // state
-  let state = loadState();
+      // DOM Elements
+      const sections = {
+        home: document.getElementById('home'),
+        add: document.getElementById('add'),
+        history: document.getElementById('history'),
+        settlements: document.getElementById('settlements'),
+        analytics: document.getElementById('analytics'),
+        settings: document.getElementById('settings')
+      };
 
-  // DOM refs
-  const sections = {
-    add: document.getElementById('section-add'),
-    summary: document.getElementById('section-summary'),
-    history: document.getElementById('section-history'),
-    analysis: document.getElementById('section-analysis'),
-    settings: document.getElementById('section-settings')
-  };
-  const menuItems = document.querySelectorAll('.menu-item');
-  const hamburger = document.getElementById('hamburger');
+      const navItems = document.querySelectorAll('[data-nav]');
 
-  // add refs
-  const payerSelect = document.getElementById('payer-select');
-  const splitList = document.getElementById('split-list');
-  const itemName = document.getElementById('item-name');
-  const itemCategory = document.getElementById('item-category');
-  const itemAmount = document.getElementById('item-amount');
-  const saveExpenseBtn = document.getElementById('save-expense');
-  const saveViewBtn = document.getElementById('save-view');
+      // Toast System
+      function showToast(msg, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        const icons = { success: 'check-circle', error: 'exclamation-circle', info: 'info-circle' };
+        toast.innerHTML = `<i class="bi bi-${icons[type] || 'info-circle'}"></i> <span>${msg}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+      }
 
-  // summary refs
-  const totalSpentEl = document.getElementById('total-spent');
-  const perPersonEl = document.getElementById('per-person');
-  const balancesEl = document.getElementById('balances');
-  const settlementSuggestionEl = document.getElementById('settlement-suggestion');
-  const markSettledBtn = document.getElementById('mark-settled');
-  const previewSettlementBtn = document.getElementById('preview-settlement');
+      // Navigation
+      function switchSection(name) {
+        Object.values(sections).forEach(s => s?.classList.remove('active'));
+        sections[name]?.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  // history refs
-  const historyList = document.getElementById('history-list');
-  const historySubtabs = document.querySelectorAll('#history-subtabs .subtab');
-  const historyFilters = document.querySelectorAll('.filters button');
+        if (name === 'home') renderHome();
+        if (name === 'add') populateAddForm();
+        if (name === 'history') renderHistory();
+        if (name === 'settlements') renderSettlements();
+        if (name === 'analytics') renderAnalytics();
+        if (name === 'settings') renderSettings();
+      }
 
-  // analysis refs
-  const analysisGraph = document.getElementById('analysis-graph');
-  const analysisSettlements = document.getElementById('analysis-settlements');
+      // Home Rendering
+      function renderHome() {
+        const calc = computeBalances();
+        document.getElementById('stat-total').textContent = '₹' + calc.total.toFixed(2);
+        document.getElementById('stat-perp').textContent = '₹' + calc.perPerson.toFixed(2);
+        document.getElementById('stat-pay').textContent = '₹' + calc.toPay.toFixed(2);
+        document.getElementById('stat-recv').textContent = '₹' + calc.toRecv.toFixed(2);
 
-  // settings/admin refs
-  const roommateListEl = document.getElementById('roommate-list');
-  const newRmInput = document.getElementById('new-roommate');
-  const addRmBtn = document.getElementById('add-roommate');
-  const adminIdInput = document.getElementById('admin-id');
-  const adminPassInput = document.getElementById('admin-pass');
-  const adminLoginBtn = document.getElementById('admin-login');
-  const adminLogoutBtn = document.getElementById('admin-logout');
-  const adminStatus = document.getElementById('admin-status');
+        const balanceList = document.getElementById('balances-list');
+        balanceList.innerHTML = '';
+        calc.balances.forEach(b => {
+          const item = document.createElement('div');
+          item.className = 'balance-item';
+          const statusClass = b.balance > 0 ? 'balance-positive' : b.balance < 0 ? 'balance-negative' : 'balance-neutral';
+          item.innerHTML = `
+            <div class="avatar">${b.name[0]}</div>
+            <div class="balance-info">
+              <div class="balance-name">${b.name}</div>
+              <div class="balance-meta">Paid ₹${b.paid.toFixed(2)} • Share ₹${b.share.toFixed(2)}</div>
+            </div>
+            <div class="balance-amount ${statusClass}">${b.balance > 0 ? '+' : ''}₹${Math.abs(b.balance).toFixed(2)}</div>
+          `;
+          balanceList.appendChild(item);
+        });
 
-  const profileIcon = document.getElementById('profile-icon');
-  const adminIcon = document.getElementById('admin-icon');
+        const recentList = document.getElementById('recent-list');
+        recentList.innerHTML = '';
+        const recent = state.expenses.slice().reverse().slice(0, 5);
+        if (!recent.length) {
+          recentList.innerHTML = '<div class="text-muted"><i class="bi bi-inbox"></i> No expenses yet</div>';
+        } else {
+          recent.forEach(e => {
+            const item = document.createElement('div');
+            item.className = 'expense-item';
+            const icons = { 'Grocery': '🛒', 'Rent': '🏠', 'Utilities': '⚡', 'Transport': '🚗', 'Entertainment': '🎬', 'Other': '📦' };
+            item.innerHTML = `
+              <div class="expense-category">${icons[e.category] || '📦'}</div>
+              <div class="expense-info">
+                <div class="expense-description">${e.payer} — ${e.desc || 'Expense'}</div>
+                <div class="expense-meta">
+                  <span>${e.date}</span>
+                  <span class="category-badge badge-${e.category.toLowerCase()}">${e.category}</span>
+                </div>
+              </div>
+              <div class="expense-amount">₹${e.amount.toFixed(2)}</div>
+            `;
+            recentList.appendChild(item);
+          });
+        }
+      }
 
-  // modals
-  const modalRoom = document.getElementById('modal-room');
-  const roomName = document.getElementById('room-name');
-  const roomPass = document.getElementById('room-pass');
-  const roomLoginBtn = document.getElementById('room-login');
-  const roomCloseBtn = document.getElementById('room-close');
+      // Add Expense Form
+      function populateAddForm() {
+        const payer = document.getElementById('inp-payer');
+        payer.innerHTML = '';
+        state.roommates.forEach(r => {
+          const opt = document.createElement('option');
+          opt.value = r;
+          opt.textContent = r;
+          payer.appendChild(opt);
+        });
 
-  const modalAdmin = document.getElementById('modal-admin');
-  const modalAdminId = document.getElementById('modal-admin-id');
-  const modalAdminPass = document.getElementById('modal-admin-pass');
-  const modalAdminLogin = document.getElementById('modal-admin-login');
-  const modalAdminClose = document.getElementById('modal-admin-close');
+        document.getElementById('inp-date').valueAsDate = new Date();
 
-  // data utils
-  const exportBtn = document.getElementById('export-json');
-  const importBtn = document.getElementById('import-json');
-  const jsonFileInput = document.getElementById('json-file');
-  const resetExpensesBtn = document.getElementById('reset-expenses');
-  const clearAllBtn = document.getElementById('clear-all');
+        const checkboxes = document.getElementById('split-checkboxes');
+        checkboxes.innerHTML = '';
+        state.roommates.forEach(r => {
+          const label = document.createElement('label');
+          label.style.display = 'flex';
+          label.style.alignItems = 'center';
+          label.style.gap = '6px';
+          label.style.cursor = 'pointer';
+          label.innerHTML = `
+            <input type="checkbox" value="${r}" checked />
+            <span>${r}</span>
+          `;
+          checkboxes.appendChild(label);
+        });
+      }
 
-  // navigation
-  function switchSection(id){
-    Object.keys(sections).forEach(k => sections[k].style.display = (k===id? 'block':'none'));
-    menuItems.forEach(mi => mi.classList.toggle('active', mi.getAttribute('data-section')===id));
-    if(id==='summary') calculateAndRender();
-    if(id==='history') renderHistory();
-    if(id==='analysis') renderAnalysis();
-    if(window.innerWidth <= 800) document.getElementById('main-menu').style.display = 'none';
-  }
-  menuItems.forEach(mi => mi.addEventListener('click', ()=> switchSection(mi.getAttribute('data-section'))));
-  hamburger.addEventListener('click', ()=> {
-    const m = document.getElementById('main-menu');
-    m.style.display = (m.style.display === 'flex' ? 'none' : 'flex');
-  });
-  switchSection('add');
+      function getSplitMembers() {
+        return Array.from(document.querySelectorAll('#split-checkboxes input[type=checkbox]'))
+          .filter(c => c.checked)
+          .map(c => c.value);
+      }
 
-  // render roommate controls
-  function renderRoommatesUI(){
-    payerSelect.innerHTML = '';
-    state.roommates.forEach(name => {
-      const opt = document.createElement('option'); opt.value = name; opt.textContent = name; payerSelect.appendChild(opt);
-    });
-    splitList.innerHTML = '';
-    state.roommates.forEach(name => {
-      const id = 'split_' + name.replace(/\s+/g,'_') + '_' + Math.floor(Math.random()*1000);
-      const lbl = document.createElement('label'); lbl.style.display='inline-flex'; lbl.style.alignItems='center'; lbl.style.gap='6px';
-      const chk = document.createElement('input'); chk.type='checkbox'; chk.value = name; chk.id = id; chk.checked = true;
-      const span = document.createElement('span'); span.className='small'; span.textContent = name;
-      lbl.appendChild(chk); lbl.appendChild(span); splitList.appendChild(lbl);
-    });
-    if(state.currentUser && state.roommates.includes(state.currentUser)) payerSelect.value = state.currentUser;
-    renderRoommateList();
-  }
+      document.getElementById('form-add').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const payer = document.getElementById('inp-payer').value;
+        const amount = parseFloat(document.getElementById('inp-amount').value);
+        const desc = document.getElementById('inp-desc').value || 'Expense';
+        const category = document.getElementById('inp-category').value;
+        const date = document.getElementById('inp-date').value;
+        const split = getSplitMembers();
 
-  function renderRoommateList(){
-    roommateListEl.innerHTML = '';
-    state.roommates.forEach(name => {
-      const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center'; row.style.padding='6px 0';
-      const left = document.createElement('div'); left.textContent = name; left.className='small';
-      const right = document.createElement('div');
-      const rmBtn = document.createElement('button'); rmBtn.textContent='Remove'; rmBtn.className='btn-ghost';
-      rmBtn.addEventListener('click', ()=> {
-        if(!state.adminLogged) return alert('Admin only');
-        if(!confirm('Remove ' + name + ' and their expenses?')) return;
-        const removed = state.expenses.filter(e => e.payer === name);
-        removed.forEach(e => state.deleted.push({type:'expense', data:e, deletedBy:'admin', deletedAt: todayISO()}));
-        state.expenses = state.expenses.filter(e => e.payer !== name);
+        if (!payer || !amount || !split.length) {
+          showToast('Fill all required fields', 'error');
+          return;
+        }
+
+        state.expenses.push({
+          id: Date.now() + Math.random(),
+          payer,
+          amount,
+          desc,
+          category,
+          date,
+          split
+        });
+
+        setState(state);
+        showToast('Expense added!', 'success');
+        switchSection('home');
+      });
+
+      document.getElementById('btn-cancel-add').addEventListener('click', () => switchSection('home'));
+
+      // Calculations
+      function computeBalances() {
+        const paid = {}, share = {};
+        state.roommates.forEach(r => {
+          paid[r] = 0;
+          share[r] = 0;
+        });
+
+        state.expenses.forEach(e => {
+          paid[e.payer] = (paid[e.payer] || 0) + e.amount;
+          const perPerson = e.amount / e.split.length;
+          e.split.forEach(m => {
+            share[m] = (share[m] || 0) + perPerson;
+          });
+        });
+
+        const balances = state.roommates.map(r => ({
+          name: r,
+          paid: paid[r] || 0,
+          share: share[r] || 0,
+          balance: (paid[r] || 0) - (share[r] || 0)
+        }));
+
+        const total = state.expenses.reduce((s, e) => s + e.amount, 0);
+        const perPerson = state.roommates.length ? total / state.roommates.length : 0;
+        const toPay = balances.filter(b => b.balance < 0).reduce((s, b) => s + Math.abs(b.balance), 0);
+        const toRecv = balances.filter(b => b.balance > 0).reduce((s, b) => s + b.balance, 0);
+
+        return { balances, total, perPerson, toPay, toRecv };
+      }
+
+      // History
+      function renderHistory() {
+        const search = document.getElementById('search-expense').value.toLowerCase();
+        const category = document.getElementById('filter-category').value;
+        const sort = state.sortBy || 'recent';
+
+        let filtered = state.expenses.filter(e => {
+          const matches = !search || e.payer.toLowerCase().includes(search) || e.desc.toLowerCase().includes(search);
+          const catMatches = !category || e.category === category;
+          return matches && catMatches;
+        });
+
+        if (sort === 'oldest') filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+        if (sort === 'highest') filtered.sort((a, b) => b.amount - a.amount);
+        if (sort === 'lowest') filtered.sort((a, b) => a.amount - b.amount);
+        if (sort === 'recent') filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const list = document.getElementById('history-list');
+        list.innerHTML = '';
+
+        if (!filtered.length) {
+          list.innerHTML = '<div class="text-muted"><i class="bi bi-search"></i> No expenses found</div>';
+          return;
+        }
+
+        filtered.forEach(e => {
+          const item = document.createElement('div');
+          item.className = 'expense-item';
+          const icons = { 'Grocery': '🛒', 'Rent': '🏠', 'Utilities': '⚡', 'Transport': '🚗', 'Entertainment': '🎬', 'Other': '📦' };
+          const delBtn = `<button class="btn btn-sm btn-danger" onclick="deleteExpense('${e.id}')"><i class="bi bi-trash"></i></button>`;
+          item.innerHTML = `
+            <div class="expense-category">${icons[e.category] || '📦'}</div>
+            <div class="expense-info">
+              <div class="expense-description">${e.payer} — ${e.desc}</div>
+              <div class="expense-meta">
+                <span>${e.date}</span>
+                <span class="category-badge badge-${e.category.toLowerCase()}">${e.category}</span>
+              </div>
+            </div>
+            <div class="expense-amount">₹${e.amount.toFixed(2)}</div>
+            ${state.adminLogged ? delBtn : ''}
+          `;
+          list.appendChild(item);
+        });
+      }
+
+      document.getElementById('search-expense').addEventListener('input', renderHistory);
+      document.getElementById('filter-category').addEventListener('change', renderHistory);
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.sortBy = btn.getAttribute('data-sort');
+          setState(state);
+          renderHistory();
+        });
+      });
+
+      // Settlements
+      function renderSettlements() {
+        const calc = computeBalances();
+        const list = document.getElementById('settlements-list');
+        list.innerHTML = '';
+
+        calc.balances.forEach(b => {
+          const item = document.createElement('div');
+          item.className = 'balance-item';
+          const statusClass = b.balance > 0 ? 'balance-positive' : b.balance < 0 ? 'balance-negative' : 'balance-neutral';
+          item.innerHTML = `
+            <div class="avatar">${b.name[0]}</div>
+            <div class="balance-info">
+              <div class="balance-name">${b.name}</div>
+              <div class="balance-meta">Paid ₹${b.paid.toFixed(2)} • Share ₹${b.share.toFixed(2)}</div>
+            </div>
+            <div class="balance-amount ${statusClass}">${b.balance > 0 ? '+' : ''}₹${Math.abs(b.balance).toFixed(2)}</div>
+          `;
+          list.appendChild(item);
+        });
+      }
+
+      document.getElementById('btn-settle').addEventListener('click', () => {
+        if (!state.currentUser) {
+          showToast('Please login first', 'error');
+          return;
+        }
+        state.settlements.push({
+          id: Date.now(),
+          date: new Date().toISOString(),
+          totalAmount: state.expenses.reduce((s, e) => s + e.amount, 0)
+        });
+        state.expenses = [];
+        setState(state);
+        showToast('Settlement recorded!', 'success');
+        switchSection('home');
+      });
+
+      // Analytics
+      function renderAnalytics() {
+        if (!state.expenses.length) {
+          document.getElementById('analytics-content').innerHTML = '<div class="text-muted">No data available</div>';
+          return;
+        }
+
+        const categories = {};
+        state.expenses.forEach(e => {
+          categories[e.category] = (categories[e.category] || 0) + e.amount;
+        });
+
+        let html = '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">';
+        Object.entries(categories).forEach(([cat, total]) => {
+          html += `
+            <div class="stat-card">
+              <div class="stat-label">${cat}</div>
+              <div class="stat-value" style="color: var(--primary);">₹${total.toFixed(0)}</div>
+            </div>
+          `;
+        });
+        html += '</div>';
+        document.getElementById('analytics-content').innerHTML = html;
+      }
+
+      // Settings
+      function renderSettings() {
+        const list = document.getElementById('roommates-list');
+        list.innerHTML = '';
+        state.roommates.forEach(r => {
+          const item = document.createElement('div');
+          item.style.display = 'flex';
+          item.style.justifyContent = 'space-between';
+          item.style.alignItems = 'center';
+          item.style.padding = '10px';
+          item.style.borderBottom = '1px solid var(--border)';
+          item.innerHTML = `
+            <span>${r}</span>
+            <button class="btn btn-sm btn-danger" onclick="removeRoommate('${r}')"><i class="bi bi-trash"></i></button>
+          `;
+          list.appendChild(item);
+        });
+      }
+
+      document.getElementById('btn-add-room').addEventListener('click', () => {
+        if (!state.adminLogged) {
+          showToast('Admin access required', 'error');
+          return;
+        }
+        const name = document.getElementById('inp-new-room').value.trim();
+        if (!name || state.roommates.includes(name)) {
+          showToast('Invalid or duplicate name', 'error');
+          return;
+        }
+        state.roommates.push(name);
+        document.getElementById('inp-new-room').value = '';
+        setState(state);
+        renderSettings();
+        showToast('Roommate added!', 'success');
+      });
+
+      // Global functions
+      window.deleteExpense = (id) => {
+        if (!state.adminLogged) {
+          showToast('Admin access required', 'error');
+          return;
+        }
+        state.expenses = state.expenses.filter(e => e.id != id);
+        setState(state);
+        renderHistory();
+        showToast('Expense deleted', 'success');
+      };
+
+      window.removeRoommate = (name) => {
+        if (!state.adminLogged) {
+          showToast('Admin access required', 'error');
+          return;
+        }
         state.roommates = state.roommates.filter(r => r !== name);
-        saveState(state); renderRoommatesUI(); calculateAndRender(); renderHistory(); renderAnalysis(); flash('Removed ' + name);
+        setState(state);
+        renderSettings();
+        showToast('Roommate removed', 'success');
+      };
+
+      // Admin Login
+      document.getElementById('btn-admin-login').addEventListener('click', () => {
+        const pass = document.getElementById('inp-admin-pass').value;
+        if (pass === 'admin@123') {
+          state.adminLogged = true;
+          setState(state);
+          document.getElementById('inp-admin-pass').value = '';
+          showToast('Admin logged in', 'success');
+        } else {
+          showToast('Invalid password', 'error');
+        }
       });
-      right.appendChild(rmBtn);
-      row.appendChild(left); row.appendChild(right); roommateListEl.appendChild(row);
-    });
-    addRmBtn.onclick = ()=> {
-      if(!state.adminLogged) return alert('Admin only');
-      const name = (newRmInput.value||'').trim();
-      if(!name) return alert('Enter name');
-      if(state.roommates.some(r => r.toLowerCase() === name.toLowerCase())) return alert('Name exists');
-      state.roommates.push(name); saveState(state); newRmInput.value=''; renderRoommatesUI(); flash('Added ' + name);
-    };
-  }
 
-  // login / logout (roommate)
-  profileIcon.addEventListener('click', ()=> {
-    modalRoom.style.display = 'flex'; roomName.value = ''; roomPass.value = '';
-    roomName.focus();
-  });
-  roomCloseBtn.addEventListener('click', ()=> modalRoom.style.display = 'none');
-  roomLoginBtn.addEventListener('click', ()=> {
-    const name = (roomName.value||'').trim();
-    const pass = (roomPass.value||'').trim();
-    if(!name) return alert('Enter name');
-    if(pass !== (name + '@123')) return alert('Invalid password');
-    const actual = state.roommates.find(r => r.toLowerCase() === name.toLowerCase());
-    if(!actual) return alert('Unknown user');
-    state.currentUser = actual; saveState(state); modalRoom.style.display = 'none'; renderRoommatesUI(); calculateAndRender(); flash('Logged in: ' + state.currentUser);
-  });
-
-  // admin modal
-  adminIcon.addEventListener('click', ()=> {
-    if(state.adminLogged){
-      if(confirm('Admin logged in — logout?')){ state.adminLogged = false; saveState(state); updateAdminUI(); flash('Admin logged out'); }
-      return;
-    }
-    modalAdmin.style.display = 'flex'; modalAdminId.value=''; modalAdminPass.value=''; modalAdminId.focus();
-  });
-  modalAdminClose.addEventListener('click', ()=> modalAdmin.style.display = 'none');
-  modalAdminLogin.addEventListener('click', ()=> {
-    const id = (modalAdminId.value||'').trim(); const pass = (modalAdminPass.value||'').trim();
-    if(id !== 'admin' || pass !== 'admin@123') return alert('Invalid admin credentials');
-    state.adminLogged = true; saveState(state); modalAdmin.style.display='none'; updateAdminUI(); flash('Admin logged in');
-  });
-
-  // admin small form in settings
-  adminLoginBtn.addEventListener('click', ()=> {
-    const id = (adminIdInput.value||'').trim(); const pass = (adminPassInput.value||'').trim();
-    if(id !== 'admin' || pass !== 'admin@123') return alert('Invalid admin credentials');
-    state.adminLogged = true; saveState(state); updateAdminUI(); flash('Admin logged in');
-  });
-  adminLogoutBtn.addEventListener('click', ()=> { state.adminLogged = false; saveState(state); updateAdminUI(); flash('Admin logged out'); });
-
-  function updateAdminUI(){
-    const icon = document.getElementById('admin-icon');
-    const status = document.getElementById('admin-status');
-    if(state.adminLogged){ icon.classList.add('active'); status.textContent = 'Admin (logged in)'; adminLogoutBtn.style.display = 'inline-block'; }
-    else { icon.classList.remove('active'); status.textContent = 'Not logged in'; adminLogoutBtn.style.display = 'none'; }
-  }
-
-  // add expense
-  function getSplitSelected(){
-    const chks = splitList.querySelectorAll('input[type=checkbox]');
-    const arr = [];
-    chks.forEach(c => { if(c.checked) arr.push(c.value); });
-    return arr;
-  }
-
-  saveExpenseBtn.addEventListener('click', ()=>{
-    const payer = payerSelect.value;
-    const item = (itemName.value||'').trim();
-    const category = itemCategory.value || 'Other';
-    const amount = Number(itemAmount.value);
-    const splitBetween = getSplitSelected();
-    if(!payer || !item || !amount || isNaN(amount) || amount<=0) return alert('Fill payer, item and positive amount');
-    if(!splitBetween.length) return alert('Select at least one person to split with (including yourself if applicable)');
-    const exp = { id: uid('e'), payer, item, category, amount: Number(amount), date: todayISO(), splitBetween };
-    state.expenses.push(exp); saveState(state);
-    itemName.value=''; itemAmount.value=''; renderRoommatesUI(); calculateAndRender(); renderHistory(); renderAnalysis(); flash('Expense saved');
-  });
-
-  saveViewBtn.addEventListener('click', ()=> { saveExpenseBtn.click(); switchSection('summary'); });
-
-  // history tabs/filters
-  let historyTab = 'expenses';
-  let historyFilter = 'day';
-  historySubtabs.forEach(st => st.addEventListener('click', ()=> {
-    historySubtabs.forEach(x => x.classList.remove('active')); st.classList.add('active'); historyTab = st.getAttribute('data-tab'); renderHistory();
-  }));
-  historyFilters.forEach(f => f.addEventListener('click', ()=> {
-    historyFilters.forEach(x => x.classList.remove('active')); f.classList.add('active'); historyFilter = f.getAttribute('data-filter'); renderHistory();
-  }));
-
-  // date helpers
-  function isSameDay(a,b){ return a.toDateString() === b.toDateString(); }
-  function isSameWeek(a,b){ function sow(d){ const date=new Date(d); const day=date.getDay(); const diff = date.getDate() - day + (day===0?-6:1); date.setDate(diff); date.setHours(0,0,0,0); return date.getTime(); } return sow(a) === sow(b); }
-  function isSameMonth(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth(); }
-
-  function filterByPeriod(arr, period, key='date'){
-    const today = new Date();
-    if(period === 'day') return arr.filter(i => isSameDay(new Date(i[key]), today));
-    if(period === 'week') return arr.filter(i => isSameWeek(new Date(i[key]), today));
-    if(period === 'month') return arr.filter(i => isSameMonth(new Date(i[key]), today));
-    return arr;
-  }
-
-  // render history
-  function renderHistory(){
-    historyList.innerHTML = '';
-    if(historyTab === 'expenses'){
-      const list = filterByPeriod(state.expenses, historyFilter, 'date');
-      if(!list.length) return historyList.innerHTML = '<div class="small">No expenses found.</div>';
-      const cont = document.createElement('div'); cont.className='expenses';
-      list.slice().reverse().forEach(exp => {
-        const row = document.createElement('div'); row.className='expense';
-        const av = document.createElement('div'); av.className='avatar'; av.textContent = (exp.payer||'?')[0];
-        const meta = document.createElement('div'); meta.style.flex='1';
-        const title = document.createElement('div'); title.style.fontWeight='700'; title.textContent = exp.item + ' — ₹' + Number(exp.amount).toFixed(2) + ' (' + (exp.category||'') + ')';
-        const sub = document.createElement('div'); sub.className='small'; sub.textContent = exp.payer + ' • ' + exp.date + ' • split: ' + (exp.splitBetween? exp.splitBetween.join(', '):'—');
-        meta.appendChild(title); meta.appendChild(sub);
-        const controls = document.createElement('div');
-        const del = document.createElement('button'); del.className='btn-ghost'; del.textContent='Delete';
-        del.addEventListener('click', ()=> {
-          if(!state.adminLogged) return alert('Admin only');
-          if(!confirm('Delete this expense?')) return;
-          const idx = state.expenses.findIndex(x=> x.id === exp.id);
-          if(idx!==-1){ const removed = state.expenses.splice(idx,1)[0]; state.deleted.push({type:'expense', data:removed, deletedBy:'admin', deletedAt: todayISO()}); saveState(state); renderHistory(); calculateAndRender(); renderAnalysis(); flash('Deleted'); }
-        });
-        controls.appendChild(del);
-        row.appendChild(av); row.appendChild(meta); row.appendChild(controls); cont.appendChild(row);
+      // User Login
+      document.getElementById('btn-user').addEventListener('click', () => {
+        document.getElementById('modal-login').classList.add('show');
       });
-      historyList.appendChild(cont);
-    } else if(historyTab === 'settlements'){
-      const list = filterByPeriod(state.settlements, historyFilter, 'date');
-      if(!list.length) return historyList.innerHTML = '<div class="small">No settlements.</div>';
-      const cont = document.createElement('div'); cont.className='expenses';
-      list.slice().reverse().forEach(s => {
-        const row = document.createElement('div'); row.className='expense';
-        const av = document.createElement('div'); av.className='avatar'; av.textContent='S';
-        const meta = document.createElement('div'); meta.style.flex='1';
-        const title = document.createElement('div'); title.style.fontWeight='700'; title.textContent = 'Settlement — ₹' + Number(s.total).toFixed(2);
-        const sub = document.createElement('div'); sub.className='small'; sub.textContent = s.date + ' • ' + (s.participants||[]).join(', ');
-        meta.appendChild(title); meta.appendChild(sub);
-        const controls = document.createElement('div');
-        const view = document.createElement('button'); view.className='btn-ghost'; view.textContent='View';
-        view.addEventListener('click', ()=> alert((s.instructions||[]).join('\n') || 'No details'));
-        const del = document.createElement('button'); del.className='btn-ghost'; del.textContent='Delete';
-        del.addEventListener('click', ()=> {
-          if(!state.adminLogged) return alert('Admin only');
-          if(!confirm('Delete this settlement?')) return;
-          const idx = state.settlements.findIndex(x => x.id === s.id);
-          if(idx!==-1){ const rem = state.settlements.splice(idx,1)[0]; state.deleted.push({type:'settlement', data:rem, deletedBy:'admin', deletedAt: todayISO()}); saveState(state); renderHistory(); renderAnalysis(); flash('Deleted settlement'); }
-        });
-        controls.appendChild(view); controls.appendChild(del);
-        row.appendChild(av); row.appendChild(meta); row.appendChild(controls); cont.appendChild(row);
+
+      document.getElementById('modal-close').addEventListener('click', () => {
+        document.getElementById('modal-login').classList.remove('show');
       });
-      historyList.appendChild(cont);
-    } else {
-      const list = filterByPeriod(state.deleted, historyFilter, 'deletedAt');
-      if(!list.length) return historyList.innerHTML = '<div class="small">No deleted records.</div>';
-      const cont = document.createElement('div'); cont.className='expenses';
-      list.slice().reverse().forEach(d => {
-        const row = document.createElement('div'); row.className='expense';
-        const av = document.createElement('div'); av.className='avatar'; av.textContent = d.type==='expense'? 'E':'S';
-        const meta = document.createElement('div'); meta.style.flex='1';
-        const title = document.createElement('div'); title.style.fontWeight='700';
-        title.textContent = d.type==='expense' ? (d.data.item + ' — ₹' + Number(d.data.amount).toFixed(2)) : ('Settlement — ₹' + Number(d.data.total).toFixed(2));
-        const sub = document.createElement('div'); sub.className='small'; sub.textContent = d.deletedAt + ' • deleted by: ' + (d.deletedBy || 'admin');
-        meta.appendChild(title); meta.appendChild(sub);
-        const controls = document.createElement('div');
-        const restore = document.createElement('button'); restore.className='btn-ghost'; restore.textContent='Restore';
-        restore.addEventListener('click', ()=> {
-          if(!state.adminLogged) return alert('Admin only');
-          if(!confirm('Restore this record?')) return;
-          if(d.type==='expense'){ state.expenses.push(d.data); } else if(d.type==='settlement'){ state.settlements.push(d.data); }
-          const idx = state.deleted.findIndex(x => x === d); if(idx!==-1) state.deleted.splice(idx,1);
-          saveState(state); renderHistory(); calculateAndRender(); renderAnalysis(); flash('Restored');
-        });
-        controls.appendChild(restore);
-        row.appendChild(av); row.appendChild(meta); row.appendChild(controls); cont.appendChild(row);
+
+      document.getElementById('modal-login-btn').addEventListener('click', () => {
+        const name = document.getElementById('modal-name').value.trim();
+        const pass = document.getElementById('modal-pass').value;
+        if (pass === (name + '@123') && state.roommates.includes(name)) {
+          state.currentUser = name;
+          setState(state);
+          document.getElementById('modal-login').classList.remove('show');
+          document.getElementById('modal-name').value = '';
+          document.getElementById('modal-pass').value = '';
+          showToast(`Welcome, ${name}!`, 'success');
+        } else {
+          showToast('Invalid credentials', 'error');
+        }
       });
-      historyList.appendChild(cont);
-    }
-  }
 
-  // analysis
-  function getMonthYear(dateString){ const d = new Date(dateString); return d.toLocaleString('en-US',{month:'short'}) + ' ' + d.getFullYear(); }
-  function renderAnalysis(){
-    analysisGraph.innerHTML = '';
-    if(!state.expenses.length){ analysisGraph.textContent = 'No expense data.'; analysisSettlements.textContent = 'No settlements yet.'; return; }
-    const totals = state.expenses.reduce((acc,e)=> { const m = getMonthYear(e.date); acc[m] = (acc[m]||0) + Number(e.amount); return acc; }, {});
-    const rows = Object.keys(totals).map(k=>({month:k, total:totals[k]}));
-    rows.sort((a,b)=> new Date(a.month.replace(' ',' 1, ')) - new Date(b.month.replace(' ',' 1, ')));
-    const recent = rows.slice(-12); const max = Math.max(1, ...recent.map(r=>r.total));
-    recent.forEach(r => {
-      const div = document.createElement('div'); div.className='graph-row';
-      const label = document.createElement('div'); label.style.width='120px'; label.className='small'; label.textContent = r.month;
-      const barWrap = document.createElement('div'); barWrap.style.flex='1';
-      const bar = document.createElement('div'); bar.className='bar'; bar.style.width = (Math.max(6, (r.total/max)*100)) + '%';
-      barWrap.appendChild(bar);
-      const val = document.createElement('div'); val.style.width='90px'; val.className='small'; val.textContent = '₹' + Math.round(r.total);
-      div.appendChild(label); div.appendChild(barWrap); div.appendChild(val); analysisGraph.appendChild(div);
-    });
-    analysisSettlements.innerHTML = state.settlements.length ? state.settlements.slice().reverse().map(s=> s.date + ' • ₹' + Math.round(s.total)).join('<br>') : 'No settlements yet.';
-  }
+      // Export
+      document.getElementById('btn-export').addEventListener('click', () => {
+        if (!state.adminLogged) {
+          showToast('Admin access required', 'error');
+          return;
+        }
+        const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'roomexpense_' + new Date().toISOString().split('T')[0] + '.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Data exported', 'success');
+      });
 
-  // settlement / live summary logic
-  function calculateAndRender(){
-    // last settlement date (if any)
-    let lastSet = null;
-    if(state.settlements.length) lastSet = state.settlements.reduce((acc,s) => acc > s.date ? acc : s.date, state.settlements[0].date);
-    const relevant = state.expenses.filter(e => !lastSet || (new Date(e.date) > new Date(lastSet)));
-    // compute total spent in cycle
-    const total = relevant.reduce((s,e)=> s + Number(e.amount), 0);
-    const n = Math.max(1, state.roommates.length);
-    const perPerson = total / n;
-    totalSpentEl.textContent = '₹' + total.toFixed(2);
-    perPersonEl.textContent = '₹' + perPerson.toFixed(2);
+      // Clear All
+      document.getElementById('btn-clear-all').addEventListener('click', () => {
+        if (!state.adminLogged) {
+          showToast('Admin access required', 'error');
+          return;
+        }
+        if (confirm('Clear ALL data?')) {
+          state = initState();
+          setState(state);
+          renderHome();
+          showToast('All data cleared', 'success');
+        }
+      });
 
-    // compute each person's net: net = amount paid - sum(shares of expenses where they are in split)
-    const paid = {}; const share = {};
-    state.roommates.forEach(r => { paid[r]=0; share[r]=0; });
-    relevant.forEach(e => {
-      paid[e.payer] = (paid[e.payer]||0) + Number(e.amount);
-      const participants = Array.isArray(e.splitBetween) && e.splitBetween.length ? e.splitBetween : state.roommates;
-      const per = Number(e.amount) / participants.length;
-      participants.forEach(p => { share[p] = (share[p]||0) + per; });
-    });
-    const balanceArr = [];
-    state.roommates.forEach(r => {
-      const net = +( (paid[r]||0) - (share[r]||0) ).toFixed(2);
-      balanceArr.push({ name: r, paid: +(paid[r]||0), share: +(share[r]||0), net });
-    });
+      // Theme Toggle
+      document.getElementById('btn-theme').addEventListener('click', () => {
+        state.theme = state.theme === 'light' ? 'dark' : 'light';
+        document.body.setAttribute('data-theme', state.theme);
+        setState(state);
+      });
 
-    // render balances UI
-    balancesEl.innerHTML = '';
-    balanceArr.forEach(b => {
-      const p = document.createElement('div'); p.style.display='flex'; p.style.justifyContent='space-between'; p.style.alignItems='center';
-      p.style.padding='8px'; p.style.background='#fff'; p.style.border='1px solid #eef6ee'; p.style.borderRadius='8px';
-      const left = document.createElement('div'); left.style.display='flex'; left.style.alignItems='center'; left.style.gap='10px';
-      const av = document.createElement('div'); av.className='avatar'; av.textContent = (b.name && b.name[0])? b.name[0] : '?';
-      const txt = document.createElement('div'); const nm = document.createElement('div'); nm.style.fontWeight='700'; nm.textContent = b.name;
-      const sub = document.createElement('div'); sub.className='small'; sub.textContent = 'Paid: ₹' + b.paid.toFixed(2) + ' • Share: ₹' + b.share.toFixed(2);
-      txt.appendChild(nm); txt.appendChild(sub); left.appendChild(av); left.appendChild(txt);
-      const right = document.createElement('div'); right.style.fontWeight='700';
-      right.textContent = (b.net > 0)? ('To Receive ₹' + b.net.toFixed(2)) : ('Owes ₹' + Math.abs(b.net).toFixed(2));
-      p.appendChild(left); p.appendChild(right); balancesEl.appendChild(p);
-    });
+      // FAB
+      document.getElementById('fab').addEventListener('click', () => switchSection('add'));
 
-    // settlement instructions using net balances
-    const instructions = generateInstructions(balanceArr);
-    settlementSuggestionEl.textContent = instructions.length ? instructions.join('\n') : 'All settled or no expenses.';
-  }
+      // Init
+      function init() {
+        document.body.setAttribute('data-theme', state.theme || 'light');
+        
+        // Create navigation
+        const navHtml = `
+          <div class="nav-item active" onclick="switchSection('home')"><i class="bi bi-house-fill"></i> <span>Home</span></div>
+       
+          <div class="nav-item" onclick="switchSection('history')"><i class="bi bi-clock-history"></i> <span>History</span></div>
+          <div class="nav-item" onclick="switchSection('settlements')"><i class="bi bi-calculator"></i> <span>Settle</span></div>
+          
+          <div class="nav-item" onclick="switchSection('settings')"><i class="bi bi-gear"></i> <span>Settings</span></div>
+        `;
+        const nav = document.createElement('nav');
+        nav.className = 'nav-menu';
+        nav.innerHTML = navHtml;
+        document.querySelector('.app').appendChild(nav);
 
-  // generate settlement instructions from net balances
-  function generateInstructions(balanceArr){
-    const creditors = balanceArr.filter(x=> x.net > 0).map(x=>({...x})).sort((a,b)=> b.net - a.net);
-    const debtors = balanceArr.filter(x=> x.net < 0).map(x=>({...x})).sort((a,b)=> a.net - b.net);
-    const res = []; let i=0,j=0;
-    while(i<debtors.length && j<creditors.length){
-      const d = debtors[i], c = creditors[j];
-      const amt = Math.min(Math.abs(d.net), c.net);
-      if(amt > 0.01){ res.push(d.name + ' pays ₹' + amt.toFixed(2) + ' → ' + c.name); d.net += amt; c.net -= amt; }
-      if(Math.abs(d.net) < 0.01) i++;
-      if(c.net < 0.01) j++;
-    }
-    return res;
-  }
+        window.switchSection = (name) => {
+          const items = document.querySelectorAll('.nav-item');
+          items.forEach(item => item.classList.remove('active'));
+          items[['home', 'add', 'history', 'settlements', 'analytics', 'settings'].indexOf(name)].classList.add('active');
+          switchSection(name);
+        };
 
-  // mark settled — allowed by any logged-in roommate
-  markSettledBtn.addEventListener('click', ()=> {
-    if(!state.currentUser) return alert('Login required to mark settlement');
-    let lastSet = null;
-    if(state.settlements.length) lastSet = state.settlements.reduce((acc,s) => acc > s.date ? acc : s.date, state.settlements[0].date);
-    const relevant = state.expenses.filter(e => !lastSet || (new Date(e.date) > new Date(lastSet)));
-    const total = relevant.reduce((s,e)=> s + Number(e.amount), 0);
-    if(total === 0) return alert('No expenses to settle');
-    // compute participant list and instructions like above
-    const n = Math.max(1, state.roommates.length);
-    const paid = {}; const share = {};
-    state.roommates.forEach(r=> { paid[r]=0; share[r]=0; });
-    relevant.forEach(e => {
-      paid[e.payer] = (paid[e.payer]||0) + Number(e.amount);
-      const participants = Array.isArray(e.splitBetween) && e.splitBetween.length ? e.splitBetween : state.roommates;
-      const per = Number(e.amount) / participants.length;
-      participants.forEach(p => { share[p] = (share[p]||0) + per; });
-    });
-    const balanceArr = state.roommates.map(r => ({ name:r, paid: +(paid[r]||0), share: +(share[r]||0), net: +(((paid[r]||0) - (share[r]||0)).toFixed(2)) }));
-    const instructions = generateInstructions(balanceArr);
-    const participants = balanceArr.filter(b=> Math.abs(b.paid) > 0 || Math.abs(b.share) > 0).map(b=>b.name);
-    const settlement = { id: uid('s'), date: todayISO(), total: total, perPerson: +(total / Math.max(1, state.roommates.length)).toFixed(2), participants, instructions };
-    state.settlements.push(settlement); saveState(state); calculateAndRender(); renderHistory(); renderAnalysis(); flash('Settlement recorded');
-  });
+        renderHome();
+        showToast('Welcome to RoomExpense Pro! 🎉', 'success');
+      }
 
-  previewSettlementBtn.addEventListener('click', ()=> alert(settlementSuggestionEl.textContent || 'No suggestion'));
-
-  // export/import/reset/clear (admin-only)
-  exportBtn.addEventListener('click', ()=> {
-    if(!state.adminLogged) return alert('Admin only');
-    const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'}); const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'roomexpense_export.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  });
-  importBtn.addEventListener('click', ()=> { if(!state.adminLogged) return alert('Admin only'); jsonFileInput.click(); });
-  jsonFileInput.addEventListener('change', (ev)=> {
-    if(!state.adminLogged) return alert('Admin only');
-    const f = ev.target.files[0]; if(!f) return;
-    const r = new FileReader(); r.onload = function(){ try{ const parsed = JSON.parse(r.result); if(parsed.roommates && parsed.expenses && parsed.settlements){ state = parsed; state.deleted = state.deleted || []; state.currentUser = state.currentUser || null; state.adminLogged = !!state.adminLogged; saveState(state); initAll(); alert('Imported OK'); } else alert('Invalid file'); } catch(e){ alert('Invalid JSON'); } }; r.readAsText(f);
-  });
-
-  resetExpensesBtn.addEventListener('click', ()=> {
-    if(!state.adminLogged) return alert('Admin only');
-    if(!confirm('Remove all expenses? (roommates remain)')) return;
-    state.expenses.forEach(e => state.deleted.push({type:'expense', data:e, deletedBy:'admin', deletedAt: todayISO()}));
-    state.expenses = []; saveState(state); calculateAndRender(); renderHistory(); renderAnalysis(); flash('Expenses reset');
-  });
-
-  clearAllBtn.addEventListener('click', ()=> {
-    if(!state.adminLogged) return alert('Admin only');
-    if(!confirm('Clear ALL data? This cannot be undone.')) return;
-    state = {roommates: DEFAULT_ROOMMATES.slice(), expenses: [], settlements: [], deleted: [], currentUser: null, adminLogged: false};
-    saveState(state); initAll(); flash('Cleared all data');
-  });
-
-  // admin small form in settings
-  adminLoginBtn.addEventListener('click', ()=> {
-    const id = (adminIdInput.value||'').trim(); const pass = (adminPassInput.value||'').trim();
-    if(id !== 'admin' || pass !== 'admin@123') return alert('Invalid admin credentials');
-    state.adminLogged = true; saveState(state); updateAdminUI(); flash('Admin logged in');
-  });
-  adminLogoutBtn.addEventListener('click', ()=> { state.adminLogged = false; saveState(state); updateAdminUI(); flash('Admin logged out'); });
-
-  // render initial UI
-  function updateAdminUI(){
-    if(state.adminLogged){ adminIcon.classList.add('active'); adminStatus.textContent = 'Admin (logged in)'; adminLogoutBtn.style.display='inline-block'; }
-    else { adminIcon.classList.remove('active'); adminStatus.textContent = 'Not logged in'; adminLogoutBtn.style.display='none'; }
-  }
-
-  // initial rendering and boot
-  function initAll(){
-    if(!state.roommates || !state.roommates.length) state.roommates = DEFAULT_ROOMMATES.slice();
-    saveState(state);
-    renderRoommatesUI(); updateAdminUI(); calculateAndRender(); renderHistory(); renderAnalysis();
-  }
-  initAll();
-
-  // save state on unload (defensive)
-  window.addEventListener('beforeunload', ()=> saveState(state));
-})();
-</script>
+      init();
+    })();
+  </script>
 </body>
 </html>
-        
-
